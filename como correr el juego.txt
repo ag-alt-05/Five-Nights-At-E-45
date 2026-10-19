@@ -1,0 +1,9 @@
+-Tener python 3.12
+-Instalar pygame y pgzero
+	py -3.12 -m pip install pgzero
+	py -3.12 -m pip install pygame
+-py -3.12 -m pgzrun baile.py
+-y ya
+
+skibidi dop dop yesyes 67676767676767
+
