@@ -4,6 +4,9 @@
 from random import randint
 import sys
 import os
+PYGAME_HIDE_SUPPORT_PROMPT = 1
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+os.environ['SDL_VIDEO_WINDOW_POS'] = "center"
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'Lib'))
 import pgzrun# type: ignore
 import pygame# type: ignore
@@ -11,12 +14,9 @@ from Enemigos_clase import Monstruo
 # py -m pip install pygame
 # py -m pip install pgzero
 import pgzero.game as pgzero_game  # type: ignore
-dificultad = 3
+dificultad = 5
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = "center"
 TITLE = "FIVE NIGHTS AT E-45"
-reloj = pygame.time.Clock()
-#Esta variables definen el tamaño de la ventana del juego.
 RESOLUCION = 720
 
 ANCHO = round(RESOLUCION*1.77777777778)
@@ -79,6 +79,12 @@ menu = pygame.transform.scale(imagen, (1280,720))
 
 imagen = pygame.image.load("images/ventana.png")
 ventana = pygame.transform.scale(imagen, (1280,720))
+
+gameOverIMG = pygame.image.load("images/PANTALLA_FALLIDA.png")
+gameOverIMG = pygame.transform.scale(gameOverIMG, (1280,720))
+
+gameOverTXT = pygame.image.load("images/DIED.png")
+gameOverTXT = pygame.transform.scale(gameOverTXT, (1280,720))
 
 imagen = pygame.image.load("images/titulo.png")
 titulo = pygame.transform.scale(imagen, (1024/2,471/2))
@@ -215,7 +221,7 @@ sounds.click.set_volume(0.25)
 sounds.light.set_volume(0.8)
 
 sounds.interaccion.set_volume(0.8)
-sounds.glich.set_volume(0.05)
+sounds.glich.set_volume(0.35)
 
 sounds.ventana_abrir.set_volume(0.2)
 sounds.ventana_cerrar.set_volume(0.2)
@@ -224,7 +230,7 @@ sounds.movimiento_de_ropa_en_cesta.set_volume(0.25)
 sounds.subir_mesa.set_volume(0.3)
 sounds.bajar_mesa.set_volume(0.3)
 
-sounds.naked_screamer.set_volume(0.5)
+sounds.naked_screamer.set_volume(0.15)
 sounds.naked_pasos.set_volume(0.75)
 sounds.naked_puerta.set_volume(0.7)
 sounds.naked_puerta_cerrar.set_volume(0.4)
@@ -233,7 +239,7 @@ sounds.naked_suspiro.set_volume(0.5)
 sounds.puppet_grito1.set_volume(0.3)
 sounds.puppet_grito2.set_volume(0.3)
 sounds.puppet_grito3.set_volume(0.3)
-sounds.puppet_screamer.set_volume(0.3)
+sounds.puppet_screamer.set_volume(0.15)
 sounds.ventana1.set_volume(0.3)
 sounds.ventana2.set_volume(0.3)
 
@@ -251,6 +257,8 @@ def draw():
     global puppet_pos, inter_frame, Estrellas
     global GameOverTime,juego_pantalla_perder,juego_pantalla_ganar_horas,naked
     global pcs, cantidad_ram, contador_ram, cambio_pc, pos_pc_x, cambio_pc_volver, freddy, juego_extras, dificultad
+    global gameOverIMG, gameOverTXT
+    
     """
     Función principal encargada de dibujar todos los elementos del juego en la pantalla.
     """
@@ -323,10 +331,11 @@ def draw():
             #screen.draw.text("Dificultad: "+str(round(dificultad)), color="white", topleft=(ANCHO/2, 40), fontsize=40)
             
             if naked.get_nivel() == 3:
-                screen.blit(naked.get_sprite(), (movi-185,-116))                                                        #type: ignore
+                screen.blit(naked.get_sprite(), (movi-185,-116))
+            """                       #type: ignore
             if puppet.get_nivel() == 3:
                 screen.blit(puppet.get_sprite(), (1000 + randint(-2,2), 75 + randint(-2,2)))                            #type: ignore
-
+            """
             if Easter_egg_chance1 == 1 and not juego_perder:
                 freddy = True
                 Easter_egg2.pos = movi+1090,320
@@ -338,15 +347,17 @@ def draw():
         elif juego_puerta:
             sounds.puppet_noise.set_volume(0.01) #type: ignore
             screen.clear()#type: ignore
-            match naked.get_nivel():
-                case 0:
-                    puerta.set_nivel(0)
-                case 1:
-                    puerta.set_nivel(0)
-                case 2:
-                    puerta.set_nivel(1)
+            
+            puerta.set_nivel(0)
+            if(naked.get_nivel() == 2):
+                puerta.set_nivel(1)
+
             screen.blit(puerta.get_sprite(), (0,0))#type: ignore
-            screen.blit(naked.get_sprite(), (0, 0))#type: ignore
+            if(naked.get_nivel() != 3):
+                screen.blit(naked.get_sprite(), (0, 0))#type: ignore
+
+
+                
             if Easter_egg_chance == 1:
                 Easter_egg1.angle = 10
                 Easter_egg1.draw()
@@ -437,12 +448,7 @@ def draw():
         Cuadro_alpha.fill((0,0,0))
         Cuadro_alpha.set_alpha(75)
         #-------------------------------------------
-
-        if naked.get_nivel() == 4:
-            screen.blit(naked.get_sprite(), (0 + randint(-24,24), 0 + randint(-24,24)))
-        
-        if puppet.get_nivel() == 4:
-            screen.blit(puppet.get_sprite(), (0 + randint(-24,24), 0 + randint(-24,24)))                            #type: ignore
+                         #type: ignore
         
         if linterna:
             pos_mouse = pygame.mouse.get_pos()
@@ -484,6 +490,11 @@ def draw():
                 if linterna:
                     Cuadro_alpha.set_alpha(80)
             
+        if naked.get_nivel() == 4:
+            screen.blit(naked.get_sprite(), (0 + randint(-24,24), 0 + randint(-24,24)))
+        
+        if puppet.get_nivel() == 4:
+            screen.blit(puppet.get_sprite(), (0 + randint(-24,24), 0 + randint(-24,24)))   
         screen.blit(Cuadro_alpha, (0, 0))
 
     elif juego_instrucciones:
@@ -494,8 +505,6 @@ def draw():
         #screen.draw.rect(botonRegresar,(255,0,0))
         screen.draw.text("REGRESAR", color=color_button_regresar,center=botonRegresar.center, fontsize=40)
 
-    if juego_perder:
-        dibujar_interferencia(15)
     if juego_menu or juego_instrucciones:
         dibujar_interferencia(25)
 
@@ -564,18 +573,19 @@ def draw():
                         quit()
 
         Cuadro_alpha.fill((0,0,0))
-        screen.blit(Cuadro_alpha, (0, 0))
+        if not juego_perder:
+            screen.blit(Cuadro_alpha, (0, 0))
 
     if juego_pantalla_perder:
         screen.clear()
-        screen.fill((0,0,0))
-        screen.draw.text("TE ATRAPARON", color="white", topleft=((ANCHO/2)-120, ALTO/2-60), fontsize=80)
+        screen.blit(gameOverIMG, (0, 0))
+        dibujar_interferencia(25)
+        screen.blit(gameOverTXT, (0, 0))
 
     if juego_pantalla_ganar_horas:
         screen.clear()
-        screen.fill((0,0,0))
         screen.draw.text("6AM", color="white", topleft=((ANCHO/2)-50, ALTO/2-45), fontsize=80)
-
+    
     return
 
 def dibujar_interferencia(opacidad):
@@ -611,7 +621,7 @@ def on_mouse_down(pos, button):
                 sounds.interaccion.play()
                 quit()
         #------------EN JUEGO
-        velocidad = 8
+        velocidad = 18
         if juego_iniciar:
             if juego_salon and not juego_perder:
                 if hitbox_puerta1.collidepoint(pos):
@@ -642,7 +652,7 @@ def on_mouse_down(pos, button):
                 if hitbox_mesa.collidepoint(pos):
                     sounds.movimiento_de_ropa_en_cesta.play()
                     bajo_Mesa.set_nivel(randint(0,2))
-                    fade_out(6, 7)
+                    fade_out(6, 14)
                 if hitbox_proyector.collidepoint(pos):
                     sounds.subir_mesa.play()
                     fade_out(7, velocidad)
@@ -737,9 +747,9 @@ def on_key_down(key):
                         if juego_puerta:                        
                             sounds.ventana_cerrar.play()
                         Easter_egg_chance1 = randint(1,50)
-                        fade_out(8, 10)
+                        fade_out(8, 18)
                     else:
-                        fade_out(9, 12)
+                        fade_out(9, 18)
 
             if key == keys.F:
                 sounds.light.play()
@@ -915,7 +925,7 @@ def perder():
     juego_perder = True
     cam_velocidad = 0
 
-def update(): # Esta es una función incorporada de Pygame Zero.
+def update(dt): # Esta es una función incorporada de Pygame Zero.
     global juego_iniciar, movi, juego_menu, timer, horas, minutos, transicion_timer, juego_perder
     global hitbox_ventana, hitbox_mesa, hitbox_proyector, hitbox_nariz
     global hitbox_ventana_atributos, hitbox_mesa_atributos, hitbox_proyector_atributos, hitbox_nariz_atributos
@@ -926,6 +936,8 @@ def update(): # Esta es una función incorporada de Pygame Zero.
     global juego_puerta,juego_ventana, juego_mesa, juego_proyector, juego_compu, juego_salon, juego_pantalla_perder,juego_pantalla_ganar_horas
     global naked, naked_sound, naked_timer, GameOverTime, naked_tiempo_espera, naked_tiempo_escondido, naked_cooldown
     global Estrellas, juego_extras, cam_velocidad, dificultad
+    
+    timer += dt
     pos_mouse = pygame.mouse.get_pos()
     if juego_menu:
         if keyboard.p:
@@ -979,7 +991,6 @@ def update(): # Esta es una función incorporada de Pygame Zero.
         else:
             color_button_regresar = 128,128,128
         
-    timer += 1
     #print(timer)
     #Cuenta cada segundo
     if juego_iniciar:                
@@ -995,7 +1006,9 @@ def update(): # Esta es una función incorporada de Pygame Zero.
         if switchs_encendidos >= 3 and bateria >= 1:
             bateria -= 0.01 * switchs_encendidos
 
-    if timer >= 60:
+    #print(GameOverTime,"-", round(timer,2),"----------", dt)
+    if timer >= 1:
+        #print(GameOverTime,"-", round(timer,2),"----------")
         #print(transicion_timer)
         if juego_iniciar:
             #print(horas, ":", minutos)
@@ -1011,7 +1024,10 @@ def update(): # Esta es una función incorporada de Pygame Zero.
                 if Switch_timer == 9 - dificultad:#Cada 10 segundos chance de prender un switch
                     Switch_timer = 0
                     if switchs_encendidos < 6:
-                        moneda_switch = randint(0,3) #De 25% de chanche que se active un switch
+                        if (horas >= 4):
+                            moneda_switch = randint(0,2) #De 33% de chanche que se active un switch
+                        else:
+                            moneda_switch = randint(0,3) #De 25% de chanche que se active un switch
                         if moneda_switch == 0:
                             switchs_encendidos += 1
                             switchOn(randint(1,6))
@@ -1025,11 +1041,13 @@ def update(): # Esta es una función incorporada de Pygame Zero.
                         #------------------------------------------------
                         if puppet_timer == 8 - round(dificultad/2,0):#mover para hacer pruebas
                             puppet_timer = 0
-                            moneda_puppet = randint(0,1)
+                            moneda_puppet = randint(0,2)
                             if moneda_puppet == 0:
                                 puppet.set_nivel(puppet.get_nivel()+1)
                                 if(juego_ventana and puppet.get_nivel() == 2):
                                     puppet.set_nivel(1)
+                                if(puppet.get_nivel() == 3):
+                                    puppet.set_nivel(4)
                                 #--------IMPORTANTE
                             print("PUPPET----",puppet.get_nivel(), moneda_puppet)
                         #print(puppet_timer)
@@ -1050,7 +1068,10 @@ def update(): # Esta es una función incorporada de Pygame Zero.
                         naked_timer +=1
                         if naked_timer == 12 - round(dificultad,0):
                             naked_timer = 0
-                            moneda_naked = randint(0,3)
+                            if(horas >= 3):
+                                moneda_naked = randint(0,2)
+                            else:
+                                moneda_naked = randint(0,3)
                             if moneda_naked == 0:
                                 naked.set_nivel(naked.get_nivel()+1)
                                 if(juego_puerta):
@@ -1094,7 +1115,6 @@ def update(): # Esta es una función incorporada de Pygame Zero.
                     naked_tiempo_espera = 0
                     naked.set_nivel(0)
 
-                    
             if horas >= 6 and not juego_pantalla_ganar_horas and not juego_perder:
                 juego_perder = True
                 juego_pantalla_ganar_horas = True
@@ -1115,6 +1135,7 @@ def update(): # Esta es una función incorporada de Pygame Zero.
                             f.write(ganar.to_bytes(1, byteorder="big"))
                 
                 sounds.ganar.play()
+            
             else:
                 #-------------------------PANTALLA Y TIEMPO A LA HORA DE PERDER
                 if juego_pantalla_ganar_horas:
@@ -1126,36 +1147,33 @@ def update(): # Esta es una función incorporada de Pygame Zero.
                     sounds.puppet_noise.stop()
 
                     if GameOverTime <= 0:
-                        GameOverTime = 4
                         fade_out(10,5)
                         
                 if juego_pantalla_perder:
                     GameOverTime -= 1
                     if GameOverTime <= 0:
-                        GameOverTime = 4
                         fade_out(10,5)
+                        juego_pantalla_perder = False
+                        juego_perder = False
 
                 if naked.get_nivel() >= 4:
                     perder()
                     puppet.set_nivel(0)
 
-                    naked_timer += 1
-                    if naked_timer <= 3:
-                        naked.set_nivel(4)
+                    if naked_timer == 0:
                         sounds.naked_screamer.play()
-                    if naked_timer >= 5:
+                    naked_timer += 1
+                    if naked_timer >= 3:
                         juego_pantalla_perder = True
                         
-                if puppet.get_nivel() >= 3:
+                if puppet.get_nivel() == 4:
                     perder()
                     naked.set_nivel(0)
                     puerta.set_nivel(0)
-
-                    puppet_timer += 1
-                    if puppet_timer <= 3:
-                        puppet.set_nivel(4)
+                    if puppet_timer == 0:
                         sounds.puppet_screamer.play()
-                    if puppet_timer >= 5:
+                    puppet_timer += 1
+                    if puppet_timer >= 3:
                         juego_pantalla_perder = True
 
 
@@ -1163,7 +1181,7 @@ def update(): # Esta es una función incorporada de Pygame Zero.
             #-------------------------------------------------
         timer = 0
     #Cuenta cada 1/12 de segundo
-    if timer >= 5:
+    if timer >= 0.08333333333:
         transicion_timer += 1
     parpadeo += 1   
 
